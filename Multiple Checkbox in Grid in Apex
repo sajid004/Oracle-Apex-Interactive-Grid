@@ -1,0 +1,158 @@
+/*function(config) {
+    config.defaultGridViewOptions = {  
+        multiple: false
+    };
+    return config;
+}
+*/
+function(config) {
+    let $ = apex.jQuery,
+    toolbarData = $.apex.interactiveGrid.copyDefaultToolbar(),     
+    toolbarGroup = toolbarData.toolbarFind("actions4");
+
+
+
+toolbarGroup.controls.push({type: "BUTTON",
+                            label: "Repeat This Order",
+                            id: "static",
+                            action: "my-action",
+                            hot:true
+                           });
+
+
+
+config.initActions = function(actions){
+  actions.add({
+    name: "my-action",
+    action: function(event, focusElement) {
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+var widget      = apex.region('ROM').widget();
+var grid        = widget.interactiveGrid('getViews','grid');  
+var model       = grid.model; 
+var results     = [];
+
+
+var selectedRec=grid.getSelectedRecords();
+      var cnt =selectedRec.length;
+    selectedRec.forEach( function (r){
+        var record = r;
+        var value1 = model.getValue(record,'ORDER_NO');
+        var value2 = model.getValue(record,'ORDER_TYPE_ID');
+        var value3 = model.getValue(record,'ORDER_LOCATION_ID');
+        var value4 = model.getValue(record,'LOCATION_ID');
+
+      
+
+//        alert (value1+' '+ value2+' '+value3+'********'+cnt);
+  
+    repeatOrder(value1,value2,value3,value4);
+    cnt = cnt-1; 
+   });
+ 
+
+////////////////////////////////////////////////////////////////////////////////////////
+    }
+  });
+};
+    config.toolbarData = toolbarData;
+      config.defaultGridViewOptions = {  
+        multiple: false
+    };
+    return config;
+}
+----------------ajax--
+function repeatOrder(p_order_no,p_orderTypeId,p_orderLocationId,p_locationId) {
+//alert("Medicine repeat order call "+p_order_no+'-'+p_orderTypeId+'-'+p_orderLocationId+'-'+p_locationId);
+
+apex.server.process("MedicationRepeatOrder",
+ { 
+     x01: p_order_no, 
+     x02: p_orderTypeId, 
+     x03: p_orderLocationId, 
+     x04: p_locationId,
+
+ },
+{ 
+
+    dataType: 'text',
+    success: function(data) {
+        if (data!=''){
+       alert(data)
+          var obj = JSON.parse(data);
+
+       if(obj.count==1){
+        if(obj.status == "success"){
+        //alert(obj.message);
+        
+        apex.message.showPageSuccess(obj.message);
+        
+        apex.region('MO').refresh();
+        
+        //apex.submit(); 
+        }
+        else
+          apex.message.alert(obj.message);
+
+         // apex.navigation.redirect ( "f?p=107:13:&APP_SESSION.:::::" );
+      }
+    }
+}
+});
+}
+----------PL/SQL-------
+DECLARE
+EX_EXCEPTION EXCEPTION;
+V_COUNT     NUMBER;
+V_ORDER_NO                  ORDERENTRY.ORDER_MASTER.ORDER_NO%TYPE                      := APEX_APPLICATION.g_x01;
+V_ORDER_TYPE_ID             ORDERENTRY.ORDER_MASTER.ORDER_TYPE_ID%TYPE                 := APEX_APPLICATION.g_x02;
+V_ORDER_LOCATION_ID         ORDERENTRY.ORDER_MASTER.ORDER_LOCATION_ID%TYPE             := APEX_APPLICATION.g_x03;
+V_LOCATION_ID               ORDERENTRY.ORDER_MASTER.LOCATION_ID%TYPE                   := APEX_APPLICATION.g_x04;
+V_ALERT                     VARCHAR2(2000);
+V_STOP                      CHAR(1);
+V_TRANS_NO_NEW              ORDERENTRY.ORDER_CPT.TRANSACTION_NO%TYPE;
+BEGIN
+--HIS.MESSAGE_ENTRY_CATEGORY('*********************V_ORDER_NO:'||V_ORDER_NO||'-V_ORDER_TYPE_ID:'||V_ORDER_TYPE_ID||'-V_ORDER_LOCATION_ID'||V_ORDER_LOCATION_ID
+--||'-V_LOCATION_ID'||V_LOCATION_ID,'REPEAT AJAX CALLBACK CALLED');
+
+ORDERENTRY.PKG_PATIENT_ENCOUNTER_APEX.REPEAT_ORDER_MEDICATION(  P_ORDER_NO => V_ORDER_NO,
+                                                                P_ORDER_TYPE_ID => V_ORDER_TYPE_ID,
+                                                                P_ORDER_LOCATION_ID => V_ORDER_LOCATION_ID,
+                                                                P_LOCATION_ID => V_LOCATION_ID,
+                                                                P_ENCOUNTER_ID => :EN_ENCOUNTER_ID,
+                                                                P_PATIENT_MRNO => :EN_PATIENT_MRNO,
+                                                                P_USER_ID => :GV_USER_ID,
+                                                                P_STOP => V_STOP,
+                                                                P_ALERT_TEXT => V_ALERT);
+
+--HIS.MESSAGE_ENTRY_CATEGORY('V_STOP:'||V_STOP||'-V_ALERT:'||V_ALERT,'REPEAT AJAX CALLBACK CALLED');
+
+IF NVL(V_STOP,'N')='Y' THEN
+--:P55_ERROR_MESSAGE := V_ALERT||'-'||SQLERRM;
+RAISE EX_EXCEPTION;
+RETURN;
+ELSE
+IF V_ALERT IS NOT NULL THEN
+RAISE EX_EXCEPTION;
+--:P55_SUCCESS_INFO:=V_ALERT;
+ELSE
+:P55_SUCCESS_INFO:='Outpatient medicine saved successfully..';
+END IF;
+END IF;
+
+  apex_json.open_object;
+  apex_json.write( p_name => 'status', p_value => 'success');
+
+  apex_json.write( p_name => 'message', p_value => 'Medication added successfully');
+  apex_json.close_object;
+
+EXCEPTION
+WHEN OTHERS THEN
+:P55_ERROR_MESSAGE := V_ALERT||SQLERRM;
+apex_json.open_object;
+  apex_json.write( p_name => 'status', p_value => 'failed');
+  apex_json.write( p_name => 'message', p_value => V_ALERT||sqlerrm);
+  apex_json.close_object;
+  RETURN;
+END;
+
