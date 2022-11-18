@@ -1,0 +1,15 @@
+//Selection Change(interactive grid)
+
+let model = this.data.model;
+let dbaActivityID; 
+let dbaActivityName;
+
+
+dbaActivityID      = model.getValue(this.data.selectedRecords[0],"ACTIVITY_ID");
+dbaActivityName    = model.getValue(this.data.selectedRecords[0],"ACTIVITY_NAME");
+
+apex.item("P7_ACTIVITY_ID_2").setValue(dbaActivityID);
+
+apex.item("P7_ACTIVITY_ID").setValue(dbaActivityID);
+apex.item("P7_ACTIVITY_NAME").setValue(dbaActivityName);
+
