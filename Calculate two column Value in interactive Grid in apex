@@ -1,0 +1,5 @@
+//using SQL Expression
+create Total column and set on change dynmaic action = nvl(:UNIT_PRICE, 0) * NVL(:QUANTITY, 0)
+// using Javascript Expression
+$v('unit-price') * $v('qunatity') 
+//this is column ids
