@@ -1,0 +1,11 @@
+// add validation and function body return error text
+DECLARE
+V_COUNT NUMBER;
+BEGIN
+IF :APEX$ROW_STATUS = 'C' THEN
+  select COUNT(*) INTO V_COUNT from SECURITY.EMR_GROUP  t where t.GROUPID  = :GROUPID;
+  IF V_COUNT > 0 THEN
+  RETURN  'Record already exsit';
+  END IF;
+  end if;
+END;
