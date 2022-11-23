@@ -9,3 +9,15 @@ IF :APEX$ROW_STATUS = 'C' THEN
   END IF;
   end if;
 END;
+//dismis message in gird
+apex.jQuery(function() {
+
+  apex.theme42.util.configAPEXMsgs({
+
+    autoDismiss: true,
+
+    duration: 2000  // duration is optional (Default is 3000 milliseconds)
+
+  });
+
+});
