@@ -44,3 +44,6 @@ BEGIN
         END;
     END IF;
 END;
+///////////////////////////////////////////////////////////////////////////////////////////////
+//IG by default editable code
+apex.region( "queue" ).widget().interactiveGrid( "getActions" ).set("edit", true);
