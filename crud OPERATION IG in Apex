@@ -1,0 +1,46 @@
+DECLARE
+V_EXCEPTION                EXCEPTION;
+V_ALERT                    VARCHAR2(1000);
+BEGIN
+    IF :APEX$ROW_STATUS = 'C' THEN
+        BEGIN
+            INSERT INTO SECURITY.EMR_GROUP
+            (GROUPID, PATIENT_TYPE, DEPARTMENT_REPORT, ORDER_LOCATION, TERMINAL_ID)
+            VALUES
+            (:GROUPID, :PATIENT_TYPE, :DEPARTMENT_REPORT, :ORDER_LOCATION, :TERMINAL_ID);
+            :P51_MESSAGE := NULL;
+            :P51_MESSAGE := 'Record Saved Successfully.';
+            EXCEPTION 
+            WHEN OTHERS THEN
+            :P51_MESSAGE := NULL;
+            :P51_MESSAGE := V_ALERT||' '||SQLERRM;
+        END;
+
+    ELSIF :APEX$ROW_STATUS = 'U' THEN
+        BEGIN
+            UPDATE SECURITY.EMR_GROUP
+            SET PATIENT_TYPE      = :PATIENT_TYPE,
+                DEPARTMENT_REPORT = :DEPARTMENT_REPORT,
+                ORDER_LOCATION    = :ORDER_LOCATION,
+                TERMINAL_ID       = :TERMINAL_ID
+            WHERE GROUPID = :GROUPID;
+            :P51_MESSAGE := NULL;
+            :P51_MESSAGE := 'Record Updated Successfully.';
+            EXCEPTION 
+            WHEN OTHERS THEN
+            :P51_MESSAGE := NULL;
+            :P51_MESSAGE := V_ALERT||' '||SQLERRM;
+        END;
+
+    ELSIF :APEX$ROW_STATUS = 'D' THEN
+        BEGIN
+            DELETE FROM SECURITY.DASHBOARD_LINES WHERE LINE_ID = :LINE_ID;
+            :P51_MESSAGE := '';
+            :P51_MESSAGE := 'Record Deleted Successfully.';
+            EXCEPTION 
+            WHEN OTHERS THEN
+            :P51_MESSAGE := NULL;
+            :P51_MESSAGE := V_ALERT||' '||SQLERRM;
+        END;
+    END IF;
+END;
