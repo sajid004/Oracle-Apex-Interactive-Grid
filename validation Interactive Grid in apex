@@ -21,3 +21,12 @@ apex.jQuery(function() {
   });
 
 });
+/////////////////////////////////////////////////////
+//Javascript in PLSQL
+HTP.p ('<script type="text/javascript">');
+HTP.p (   'alert(''Patient type detail exist...  \n'');');
+ HTP.p ('</script>');
+ ----------------------------
+  HTP.p ('<script type="text/javascript">');
+ HTP.p (   'alert(''The value of Total for BU is ' ||v_count|| '.\n'      || 'You have to enter correct values to proceed further \n'');');
+ HTP.p ('</script>');
